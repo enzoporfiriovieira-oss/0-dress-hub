@@ -481,3 +481,23 @@ ConfigTab:CreateButton({
       Rayfield:Destroy()
    end,
 })
+-- TAB 6: PERSONALIZAÇÃO
+local ThemeTab = Window:CreateTab("🎨 Personalização", 4483362458)
+
+ThemeTab:CreateDropdown({
+   Name = "Escolha a Cor da Interface",
+   Options = {"Colorido", "Azul Bebê", "Rosa Bebê", "Roxo Bebê"},
+   CurrentOption = "Roxo Bebê",
+   Flag = "ThemeDropdown",
+   Callback = function(Option)
+      Rayfield:Notify({ 
+         Title = "💜 0 Dress Hub 💜", 
+         Content = "Mudando para o tema: " .. Option .. "...", 
+         Duration = 2 
+      })
+      
+      -- Salva a escolha antes do rejoin
+      task.wait(2)
+      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+   end,
+})
