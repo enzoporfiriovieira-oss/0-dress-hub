@@ -16,23 +16,37 @@ local SpeedConnection = nil
 local TargetNickMake = ""
 local TargetNickRoupa = ""
 
--- FUNÇÃO CORRIGIDA PARA VELOCIDADE (SEM BUG)
+-- FUNÇÃO AUXILIAR: BUSCAR JOGADOR POR NICK PARCIAL
+local function GetPlayerByPartialName(name)
+   if name == "" then return nil end
+   name = name:lower()
+   for _, player in ipairs(game.Players:GetPlayers()) do
+      if player.Name:lower():find(name) or player.DisplayName:lower():find(name) then
+         return player
+      end
+   end
+   return nil
+end
+
+-- FUNÇÃO VELOCIDADE
 local function ApplySpeed(speed)
     DesiredSpeed = speed
     local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.WalkSpeed = speed
-        if not SpeedConnection then
-            SpeedConnection = char.Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-                if char.Humanoid.WalkSpeed ~= DesiredSpeed then
-                    char.Humanoid.WalkSpeed = DesiredSpeed
-                end
-            end)
-        end
+    if char and char:FindFirstChildOfClass("Humanoid") then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        humanoid.WalkSpeed = speed
+        
+        if SpeedConnection then SpeedConnection:Disconnect() end
+        SpeedConnection = humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if humanoid.WalkSpeed ~= DesiredSpeed then
+                humanoid.WalkSpeed = DesiredSpeed
+            end
+        end)
     end
 end
 
 game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+    if SpeedConnection then SpeedConnection:Disconnect() end
     SpeedConnection = nil
     task.wait(0.5)
     ApplySpeed(DesiredSpeed)
@@ -47,19 +61,40 @@ AutoTab:CreateToggle({
    Flag = "AutoFarmToggle",
    Callback = function(Value)
       AutoFarm = Value
-      task.spawn(function()
-         while AutoFarm do
-            for _, item in ipairs(workspace:GetChildren()) do
-               if item:IsA("BasePart") and (item.Name == "Coin" or item.Name == "Currency") then
-                  if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = item.CFrame
-                     task.wait(0.1)
+      if AutoFarm then
+         task.spawn(function()
+            while AutoFarm do
+               local char = game.Players.LocalPlayer.Character
+               local root = char and char:FindFirstChild("HumanoidRootPart")
+               
+               if root then
+                  -- Coleta todos os objetos que correspondem a moedas no mapa
+                  local itemsToCollect = {}
+                  for _, item in ipairs(workspace:GetDescendants()) do
+                     if item:IsA("BasePart") or item:IsA("Model") then
+                        local lowerName = item.Name:lower()
+                        if lowerName:find("coin") or lowerName:find("currency") or lowerName:find("money") or lowerName:find("gem") then
+                           table.insert(itemsToCollect, item)
+                        end
+                     end
+                  end
+
+                  -- Teleporta para cada moeda encontrada
+                  for _, item in ipairs(itemsToCollect) do
+                     if not AutoFarm then break end
+                     if item and item.Parent then
+                        local targetCFrame = item:IsA("Model") and item:GetPivot() or item.CFrame
+                        if targetCFrame and root then
+                           root.CFrame = targetCFrame
+                           task.wait(0.15) -- Tempo entre cada teleporte para o servidor registrar a coleta
+                        end
+                     end
                   end
                end
+               task.wait(0.5)
             end
-            task.wait(1)
-         end
-      end)
+         end)
+      end
    end,
 })
 
@@ -78,47 +113,6 @@ AutoTab:CreateButton({
 -- TAB 2: JOGADOR & ESTILO
 local PlayerTab = Window:CreateTab("Jogador & Estilo", 4483362458)
 
--- GAME PASS GRÁTIS: +MATERIAL
-PlayerTab:CreateButton({
-   Name = "🔓 Game Pass Grátis: +Material",
-   Callback = function()
-      pcall(function()
-         local pData = game.Players.LocalPlayer:FindFirstChild("Data") or game.Players.LocalPlayer:FindFirstChild("leaderstats")
-         if pData and pData:FindFirstChild("HasMaterialGamepass") then
-            pData.HasMaterialGamepass.Value = true
-         end
-         -- Libera os botões de material bloqueados na UI do jogo
-         for _, gui in ipairs(game.Players.LocalPlayer.PlayerGui:GetDescendants()) do
-            if gui:IsA("GuiObject") and (gui.Name:lower():find("material") or gui.Name:lower():find("mat")) then
-               gui.Visible = true
-            end
-         end
-      end)
-      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Game Pass +Material ativada!", Duration = 3 })
-   end,
-})
-
--- GAME PASS GRÁTIS: +ITENS
-PlayerTab:CreateButton({
-   Name = "🔓 Game Pass Grátis: +Itens",
-   Callback = function()
-      pcall(function()
-         local pData = game.Players.LocalPlayer:FindFirstChild("Data") or game.Players.LocalPlayer:FindFirstChild("leaderstats")
-         if pData and pData:FindFirstChild("HasItemsGamepass") then
-            pData.HasItemsGamepass.Value = true
-         end
-         -- Libera abas de itens VIP / gamepass na UI do jogo
-         for _, gui in ipairs(game.Players.LocalPlayer.PlayerGui:GetDescendants()) do
-            if gui:IsA("GuiObject") and (gui.Name:lower():find("vip") or gui.Name:lower():find("item")) then
-               gui.Visible = true
-            end
-         end
-      end)
-      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Game Pass +Itens ativada!", Duration = 3 })
-   end,
-})
-
--- CÓPIA MAKE (CAIXA DE TEXTO + BOTÃO SETA)
 PlayerTab:CreateInput({
    Name = "Nick do Jogador (Make)",
    PlaceholderText = "Digite o Nick aqui...",
@@ -131,7 +125,7 @@ PlayerTab:CreateInput({
 PlayerTab:CreateButton({
    Name = "➡️ Copiar Make",
    Callback = function()
-      local targetPlayer = game.Players:FindFirstChild(TargetNickMake)
+      local targetPlayer = GetPlayerByPartialName(TargetNickMake)
       local myChar = game.Players.LocalPlayer.Character
 
       if targetPlayer and targetPlayer.Character and myChar then
@@ -149,7 +143,7 @@ PlayerTab:CreateButton({
                   item:Clone().Parent = myHead
                end
             end
-            Rayfield:Notify({ Title = "0 Dress Hub", Content = "Make copiada de " .. targetPlayer.Name, Duration = 3 })
+            Rayfield:Notify({ Title = "0 Dress Hub", Content = "Make copiada de " .. targetPlayer.DisplayName, Duration = 3 })
          end
       else
          Rayfield:Notify({ Title = "Erro", Content = "Jogador não encontrado!", Duration = 3 })
@@ -157,7 +151,6 @@ PlayerTab:CreateButton({
    end,
 })
 
--- CÓPIA ROUPA (CAIXA DE TEXTO + BOTÃO SETA)
 PlayerTab:CreateInput({
    Name = "Nick do Jogador (Roupa)",
    PlaceholderText = "Digite o Nick aqui...",
@@ -170,7 +163,7 @@ PlayerTab:CreateInput({
 PlayerTab:CreateButton({
    Name = "➡️ Copiar Roupa",
    Callback = function()
-      local targetPlayer = game.Players:FindFirstChild(TargetNickRoupa)
+      local targetPlayer = GetPlayerByPartialName(TargetNickRoupa)
       local myChar = game.Players.LocalPlayer.Character
 
       if targetPlayer and targetPlayer.Character and myChar then
@@ -184,14 +177,13 @@ PlayerTab:CreateButton({
                item:Clone().Parent = myChar
             end
          end
-         Rayfield:Notify({ Title = "0 Dress Hub", Content = "Roupa copiada de " .. targetPlayer.Name, Duration = 3 })
+         Rayfield:Notify({ Title = "0 Dress Hub", Content = "Roupa copiada de " .. targetPlayer.DisplayName, Duration = 3 })
       else
          Rayfield:Notify({ Title = "Erro", Content = "Jogador não encontrado!", Duration = 3 })
       end
    end,
 })
 
--- CORRER (CORRIGIDO)
 PlayerTab:CreateSlider({
    Name = "Velocidade de Correr (WalkSpeed)",
    Range = {16, 200},
@@ -223,7 +215,7 @@ VisualTab:CreateButton({
    Name = "Modo Foto (Ocultar Interface)",
    Callback = function()
       for _, gui in ipairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-         if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" then
+         if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" and not gui.Name:find("Rayfield") then
             gui.Enabled = not gui.Enabled
          end
       end
@@ -247,8 +239,10 @@ FunTab:CreateButton({
       local char = game.Players.LocalPlayer.Character
       if char and char:FindFirstChild("Head") then
          char.Head.Transparency = 1
-         if char.Head:FindFirstChildOfClass("Decal") then
-            char.Head:FindFirstChildOfClass("Decal").Transparency = 1
+         for _, item in ipairs(char.Head:GetChildren()) do
+            if item:IsA("Decal") then
+               item.Transparency = 1
+            end
          end
       end
    end,
@@ -258,8 +252,9 @@ FunTab:CreateButton({
    Name = "Modo Manequim",
    Callback = function()
       local char = game.Players.LocalPlayer.Character
-      if char and char:FindFirstChild("Humanoid") then
-         char.Humanoid.PlatformStand = true
+      if char and char:FindFirstChildOfClass("Humanoid") then
+         local hum = char:FindFirstChildOfClass("Humanoid")
+         hum.PlatformStand = not hum.PlatformStand
       end
    end,
 })
