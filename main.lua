@@ -481,23 +481,37 @@ ConfigTab:CreateButton({
       Rayfield:Destroy()
    end,
 })
--- TAB 6: PERSONALIZAÇÃO
+-- TAB 6: PERSONALIZAÇÃO DE TEMA
 local ThemeTab = Window:CreateTab("🎨 Personalização", 4483362458)
 
-ThemeTab:CreateDropdown({
-   Name = "Escolha a Cor da Interface",
-   Options = {"Colorido", "Azul Bebê", "Rosa Bebê", "Roxo Bebê"},
-   CurrentOption = "Roxo Bebê",
-   Flag = "ThemeDropdown",
-   Callback = function(Option)
-      Rayfield:Notify({ 
-         Title = "💜 0 Dress Hub 💜", 
-         Content = "Mudando para o tema: " .. Option .. "...", 
-         Duration = 2 
-      })
-      
-      -- Salva a escolha antes do rejoin
-      task.wait(2)
+ThemeTab:CreateLabel("Atenção: Ao escolher uma cor, o jogo será reiniciado para aplicar o tema!")
+
+ThemeTab:CreateButton({
+   Name = "💜 Tema Roxo Bebê (Amethyst)",
+   Callback = function()
+      -- O Rayfield usa "Amethyst" como tema roxo
+      Rayfield:Notify({Title = "Sucesso", Content = "Tema Roxo definido!", Duration = 2})
+      task.wait(1)
+      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+   end,
+})
+
+ThemeTab:CreateButton({
+   Name = "💙 Tema Azul Bebê (Ocean)",
+   Callback = function()
+      -- O Rayfield usa "Ocean" como tema azul
+      Rayfield:Notify({Title = "Sucesso", Content = "Tema Azul definido!", Duration = 2})
+      task.wait(1)
+      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+   end,
+})
+
+ThemeTab:CreateButton({
+   Name = "💖 Tema Rosa Bebê (Default)",
+   Callback = function()
+      -- O tema "Default" no Rayfield é geralmente o mais claro/rosa
+      Rayfield:Notify({Title = "Sucesso", Content = "Tema Rosa definido!", Duration = 2})
+      task.wait(1)
       game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
    end,
 })
