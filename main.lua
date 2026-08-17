@@ -1,293 +1,181 @@
--- Carrega a biblioteca Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local FashionIconID = 4483362458 
-
 local Window = Rayfield:CreateWindow({
-   Name = "0 Dress Hub 🛍️",
-   LoadingTitle = "Carregando 0 Dress Hub...",
-   LoadingSubtitle = "Edição Performance & Moda",
-   Theme = "Amethyst",
+   Name = "0 Dress Hub",
+   LoadingTitle = "0 Dress Hub",
+   LoadingSubtitle = "by You",
    ConfigurationSaving = { Enabled = false },
-   KeySystem = false,
-   Image = FashionIconID
+   KeySystem = false
 })
 
-local Tab = Window:CreateTab("Segredos", FashionIconID)
+-- VARIÁVEIS DE CONTROLE
+local AutoFarm = false
+local WalkSpeedVal = 16
 
-local AutoFarmEnabled = false
-local AntiAFKEnabled = false
-local RGBEnabled = false
-local PhotoModeEnabled = false
+-- LISTA DE CÓDIGOS DO JOGO (Adicione novos códigos entre aspas)
+local listaCodigos = {
+    "DRESS2026",
+    "FASHION2026",
+    "REWARD100K",
+    "STYLEUP"
+}
 
--- Funções Auxiliares
-local function GetPlayerByName(name)
-    if not name or name == "" then return nil end
-    name = string.lower(name)
-    for _, p in ipairs(game.Players:GetPlayers()) do
-        if string.find(string.lower(p.Name), name) or string.find(string.lower(p.DisplayName), name) then
-            return p
-        end
-    end
-    return nil
-end
+-- TAB 1: AUTOMATIZAÇÃO & CÓDIGOS
+local AutoTab = Window:CreateTab("Automação", 4483362458)
 
--- SEÇÃO 1: AUTO FARM E ANTIAFK
-Tab:CreateSection("Auto Farm e Anti-AFK")
-
-Tab:CreateToggle({
-   Name = "▶️ Auto Farm (Pegar Todo Money)",
+AutoTab:CreateToggle({
+   Name = "Auto Farm (Coleta de Moedas)",
    CurrentValue = false,
    Flag = "AutoFarmToggle",
    Callback = function(Value)
-       AutoFarmEnabled = Value
-       task.spawn(function()
-           while AutoFarmEnabled do
-               task.wait(0.5)
-               local lp = game.Players.LocalPlayer
-               local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
-               
-               if hrp then
-                   for _, v in ipairs(workspace:GetDescendants()) do
-                       if not AutoFarmEnabled then break end
-                       if v:IsA("BasePart") then
-                           local name = string.lower(v.Name)
-                           if (string.find(name, "coin") or string.find(name, "moeda") or string.find(name, "money") or string.find(name, "cash")) then
-                               hrp.CFrame = v.CFrame
-                               task.wait(0.2)
-                           end
-                       end
-                   end
+      AutoFarm = Value
+      task.spawn(function()
+         while AutoFarm do
+            for _, item in ipairs(workspace:GetChildren()) do
+               if item:IsA("BasePart") and (item.Name == "Coin" or item.Name == "Currency") then
+                  if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = item.CFrame
+                     task.wait(0.1)
+                  end
                end
-           end
-       end)
+            end
+            task.wait(1)
+         end
+      end)
    end,
 })
 
-Tab:CreateToggle({
-   Name = "🛡️ Anti-AFK (Não cair do jogo)",
-   CurrentValue = false,
-   Flag = "AntiAFKToggle",
-   Callback = function(Value)
-       AntiAFKEnabled = Value
-       if AntiAFKEnabled then
-           task.spawn(function()
-               while AntiAFKEnabled do
-                   task.wait(60)
-                   local VirtualUser = game:GetService("VirtualUser")
-                   VirtualUser:CaptureController()
-                   VirtualUser:ClickButton2(Vector2.new(0, 0))
-               end
-           end)
-       end
+-- MODELO DE COLETA AUTOMÁTICA DE TODOS OS CÓDIGOS
+AutoTab:CreateButton({
+   Name = "Resgatar Todos os Códigos Ativos",
+   Callback = function()
+      local redeemEvent = game:GetService("ReplicatedStorage"):FindFirstChild("RedeemCode", true) 
+          or game:GetService("ReplicatedStorage"):FindFirstChild("ClaimCode", true)
+
+      if redeemEvent then
+          for _, code in ipairs(listaCodigos) do
+              pcall(function()
+                  if redeemEvent:IsA("RemoteFunction") then
+                      redeemEvent:InvokeServer(code)
+                  elseif redeemEvent:IsA("RemoteEvent") then
+                      redeemEvent:FireServer(code)
+                  end
+              end)
+              task.wait(0.5)
+          end
+          Rayfield:Notify({ Title = "Códigos", Content = "Processo de resgate concluído!", Duration = 3 })
+      else
+          Rayfield:Notify({ Title = "Erro", Content = "Evento de código não encontrado.", Duration = 3 })
+      end
    end,
 })
 
--- SEÇÃO 2: MOVIMENTAÇÃO & VANTAGENS
-Tab:CreateSection("⚡ Velocidade & Movimentação")
+AutoTab:CreateButton({
+   Name = "Ativar Anti-AFK",
+   Callback = function()
+      local VirtualUser = game:GetService("VirtualUser")
+      game:GetService("Players").LocalPlayer.Idled:Connect(function()
+         VirtualUser:CaptureController()
+         VirtualUser:ClickButton2(Vector2.new())
+      end)
+      Rayfield:Notify({ Title = "Anti-AFK", Content = "Proteção contra desconexão ativa!", Duration = 3 })
+   end,
+})
 
-Tab:CreateSlider({
-   Name = "🏃 Velocidade (WalkSpeed)",
-   Range = {16, 120},
+-- TAB 2: JOGADOR & ESTILO
+local PlayerTab = Window:CreateTab("Jogador & Estilo", 4483362458)
+
+PlayerTab:CreateButton({
+   Name = "Copiar Estilo do Jogador Próximo",
+   Callback = function()
+      local p1 = game.Players.LocalPlayer
+      for _, p2 in ipairs(game.Players:GetPlayers()) do
+         if p2 ~= p1 and p2.Character and p1.Character then
+            local dist = (p1.Character.HumanoidRootPart.Position - p2.Character.HumanoidRootPart.Position).Magnitude
+            if dist < 15 then
+               for _, acc in ipairs(p2.Character:GetChildren()) do
+                  if acc:IsA("Accessory") or acc:IsA("Clothing") then
+                     acc:Clone().Parent = p1.Character
+                  end
+               end
+               Rayfield:Notify({ Title = "Estilo Copiado", Content = "Roupas e acessórios copiados de: " .. p2.Name, Duration = 3 })
+               break
+            end
+         end
+      end
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "Velocidade (WalkSpeed)",
+   Range = {16, 200},
    Increment = 1,
-   Suffix = " Speed",
+   Suffix = "Speed",
    CurrentValue = 16,
    Flag = "SpeedSlider",
    Callback = function(Value)
-       local char = game.Players.LocalPlayer.Character
-       if char and char:FindFirstChildOfClass("Humanoid") then
-           char:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
-       end
+      if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+      end
    end,
 })
 
--- SEÇÃO 3: TELEPORTES RÁPIDOS
-Tab:CreateSection("📍 Teleportes Rápidos")
+-- TAB 3: VISUAL & CÂMERA
+local VisualTab = Window:CreateTab("Visual & Câmera", 4483362458)
 
-local function TeleportTo(cframe)
-    local char = game.Players.LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = cframe
-    end
-end
-
-Tab:CreateButton({
-   Name = "💄 Teleporte: Área de Make / Cabelo",
-   Callback = function()
-       -- Mude as coordenadas para o local exato no mapa
-       TeleportTo(CFrame.new(0, 5, 0))
-   end,
-})
-
-Tab:CreateButton({
-   Name = "👗 Teleporte: Área de Roupas / Salão",
-   Callback = function()
-       -- Mude as coordenadas para o local exato no mapa
-       TeleportTo(CFrame.new(50, 5, 0))
-   end,
-})
-
-Tab:CreateButton({
-   Name = "👠 Teleporte: Passarela / Runway",
-   Callback = function()
-       -- Mude as coordenadas para o local exato no mapa
-       TeleportTo(CFrame.new(0, 5, 50))
-   end,
-})
-
--- SEÇÃO 4: FUNÇÃO TROLAGEM
-Tab:CreateSection("Função Trolagem 😜")
-
-Tab:CreateButton({
-   Name = "👻 Modo Sem Cabeça",
-   Callback = function()
-       local char = game.Players.LocalPlayer.Character
-       if char and char:FindFirstChild("Head") then
-           char.Head.Transparency = 1
-           for _, v in ipairs(char.Head:GetChildren()) do
-               if v:IsA("Decal") then v.Transparency = 1 end
-           end
-       end
-   end,
-})
-
-Tab:CreateButton({
-   Name = "🧍 Modo Manequim",
-   Callback = function()
-       local char = game.Players.LocalPlayer.Character
-       if char then
-           for _, part in ipairs(char:GetChildren()) do
-               if part:IsA("BasePart") then
-                   part.Material = Enum.Material.SmoothPlastic
-                   part.Color = Color3.fromRGB(200, 200, 200)
-               elseif part:IsA("Clothing") or part:IsA("ShirtGraphic") or part:IsA("Accessory") then
-                   part:Destroy()
-               end
-           end
-       end
-   end,
-})
-
-Tab:CreateToggle({
-   Name = "🌈 RGB no Personagem",
-   CurrentValue = false,
-   Flag = "RgbToggle",
-   Callback = function(Value)
-       RGBEnabled = Value
-       task.spawn(function()
-           while RGBEnabled do
-               local color = Color3.fromHSV((tick() % 5) / 5, 1, 1)
-               local char = game.Players.LocalPlayer.Character
-               if char then
-                   for _, part in ipairs(char:GetChildren()) do
-                       if part:IsA("BasePart") then part.Color = color end
-                   end
-               end
-               task.wait(0.05)
-           end
-       end)
-   end,
-})
-
--- SEÇÃO 5: OPÇÕES DE CÂMERA
-Tab:CreateSection("🎥 Opções de Câmera")
-
-Tab:CreateToggle({
-   Name = "📸 Modo Foto (Esconder Interface)",
-   CurrentValue = false,
-   Flag = "PhotoModeToggle",
-   Callback = function(Value)
-       PhotoModeEnabled = Value
-       local CoreGui = game:GetService("StarterGui")
-       local PlayerGui = game.Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
-       
-       pcall(function()
-           CoreGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, not PhotoModeEnabled)
-       end)
-       
-       if PlayerGui then
-           for _, gui in ipairs(PlayerGui:GetChildren()) do
-               if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" then
-                   gui.Enabled = not PhotoModeEnabled
-               end
-           end
-       end
-   end,
-})
-
-Tab:CreateSlider({
-   Name = "🔍 Ajuste de FOV (Zoom/Visão)",
-   Range = {30, 120},
+VisualTab:CreateSlider({
+   Name = "Ajuste de Campo de Visão (FOV)",
+   Range = {70, 120},
    Increment = 1,
-   Suffix = " FOV",
+   Suffix = "FOV",
    CurrentValue = 70,
-   Flag = "FovSlider",
+   Flag = "FOVSlider",
    Callback = function(Value)
-       workspace.CurrentCamera.FieldOfView = Value
+      workspace.CurrentCamera.FieldOfView = Value
    end,
 })
 
--- SEÇÃO 6: COPIAR ESTILO COMPLETO
-Tab:CreateSection("Copiar Estilo")
-
-local TargetNickMake = ""
-Tab:CreateInput({
-   Name = "Nick (Copiar Make)",
-   PlaceholderText = "Parte do Nick...",
-   RemoveTextOnFocusLost = false,
-   Callback = function(Text) TargetNickMake = Text end,
-})
-
-Tab:CreateButton({
-   Name = "🪞 Copiar Make",
+VisualTab:CreateButton({
+   Name = "Modo Foto (Ocultar UI)",
    Callback = function()
-       local targetPlayer = GetPlayerByName(TargetNickMake)
-       local localChar = game.Players.LocalPlayer.Character
-       if targetPlayer and targetPlayer.Character and localChar then
-           local targetHead = targetPlayer.Character:FindFirstChild("Head")
-           local localHead = localChar:FindFirstChild("Head")
-           if targetHead and localHead then
-               for _, d in ipairs(localHead:GetChildren()) do if d:IsA("Decal") then d:Destroy() end end
-               for _, d in ipairs(targetHead:GetChildren()) do if d:IsA("Decal") then d:Clone().Parent = localHead end end
-               Rayfield:Notify({Title = "Sucesso", Content = "Maquiagem copiada!", Duration = 2, Image = FashionIconID})
-           end
-       else
-           Rayfield:Notify({Title = "Erro", Content = "Jogador não encontrado!", Duration = 2, Image = FashionIconID})
-       end
+      for _, gui in ipairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+         if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" then
+            gui.Enabled = not gui.Enabled
+         end
+      end
    end,
 })
 
-local TargetNickOutfit = ""
-Tab:CreateInput({
-   Name = "Nick (Copiar Roupa, Cabelo e Acessórios)",
-   PlaceholderText = "Parte do Nick...",
-   RemoveTextOnFocusLost = false,
-   Callback = function(Text) TargetNickOutfit = Text end,
-})
-
-Tab:CreateButton({
-   Name = "👗 Copiar Look Completo (Roupa + Acessórios)",
+VisualTab:CreateButton({
+   Name = "Efeito RGB / Iluminação Customizada",
    Callback = function()
-       local targetPlayer = GetPlayerByName(TargetNickOutfit)
-       local localChar = game.Players.LocalPlayer.Character
-       if targetPlayer and targetPlayer.Character and localChar then
-           -- Limpa roupas e acessórios atuais
-           for _, item in ipairs(localChar:GetChildren()) do
-               if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
-                   item:Destroy()
-               end
-           end
-           -- Copia roupas e acessórios do jogador alvo
-           for _, item in ipairs(targetPlayer.Character:GetChildren()) do
-               if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
-                   item:Clone().Parent = localChar
-               end
-           end
-           Rayfield:Notify({Title = "Sucesso", Content = "Look completo copiado!", Duration = 2, Image = FashionIconID})
-       else
-           Rayfield:Notify({Title = "Erro", Content = "Jogador não encontrado!", Duration = 2, Image = FashionIconID})
-       end
+      local lighting = game:GetService("Lighting")
+      lighting.Ambient = Color3.fromRGB(255, 105, 180) -- Tom Rosa/Fashion
    end,
 })
 
+-- TAB 4: FUNÇÕES DIVERTIDAS / TROLLING
+local FunTab = Window:CreateTab("Troll & Efeitos", 4483362458)
+
+FunTab:CreateButton({
+   Name = "Modo Sem Cabeça (Local)",
+   Callback = function()
+      local char = game.Players.LocalPlayer.Character
+      if char and char:FindFirstChild("Head") then
+         char.Head.Transparency = 1
+         if char.Head:FindFirstChildOfClass("Decal") then
+            char.Head:FindFirstChildOfClass("Decal").Transparency = 1
+         end
+      end
+   end,
+})
+
+FunTab:CreateButton({
+   Name = "Modo Manequim",
+   Callback = function()
+      local char = game.Players.LocalPlayer.Character
+      if char and char:FindFirstChild("Humanoid") then
+         char.Humanoid.PlatformStand = true
+      end
+   end,
+})
