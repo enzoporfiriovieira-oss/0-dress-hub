@@ -19,6 +19,7 @@ local AutoFarmEnabled = false
 local AntiAFKEnabled = false
 local RGBEnabled = false
 local CurrentScaryTrack = nil
+local PhotoModeEnabled = false
 
 -- Funções Auxiliares
 local function GetPlayerByName(name)
@@ -213,7 +214,45 @@ Tab:CreateToggle({
    end,
 })
 
--- SEÇÃO 5: COPIAR ESTILO
+-- SEÇÃO 5: OPÇÕES DE CÂMERA
+Tab:CreateSection("🎥 Opções de Câmera")
+
+Tab:CreateToggle({
+   Name = "📸 Modo Foto (Esconder Interface)",
+   CurrentValue = false,
+   Flag = "PhotoModeToggle",
+   Callback = function(Value)
+       PhotoModeEnabled = Value
+       local CoreGui = game:GetService("StarterGui")
+       local PlayerGui = game.Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+       
+       pcall(function()
+           CoreGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, not PhotoModeEnabled)
+       end)
+       
+       if PlayerGui then
+           for _, gui in ipairs(PlayerGui:GetChildren()) do
+               if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" then
+                   gui.Enabled = not PhotoModeEnabled
+               end
+           end
+       end
+   end,
+})
+
+Tab:CreateSlider({
+   Name = "🔍 Ajuste de FOV (Zoom/Visão)",
+   Range = {30, 120},
+   Increment = 1,
+   Suffix = " FOV",
+   CurrentValue = 70,
+   Flag = "FovSlider",
+   Callback = function(Value)
+       workspace.CurrentCamera.FieldOfView = Value
+   end,
+})
+
+-- SEÇÃO 6: COPIAR ESTILO
 Tab:CreateSection("Copiar Estilo")
 
 local TargetNickMake = ""
