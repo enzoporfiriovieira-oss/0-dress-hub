@@ -1,4 +1,4 @@
-16local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
    Name = "💜 0 Dress Hub 💜",
@@ -21,6 +21,7 @@ local CameraLocking = false
 local CameraConnection = nil
 local PanoramicCam = false
 local PanoramicConnection = nil
+local AutoVotarAtivo = false
 
 -- FUNÇÃO AUXILIAR: BUSCAR JOGADOR POR NICK PARCIAL
 local function GetPlayerByPartialName(name)
@@ -174,14 +175,12 @@ PlayerTab:CreateButton({
       local myChar = game.Players.LocalPlayer.Character
 
       if targetPlayer and targetPlayer.Character and myChar then
-         -- Limpar roupas, acessórios e cabelos antigos
          for _, item in ipairs(myChar:GetChildren()) do
             if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
                item:Destroy()
             end
          end
 
-         -- Clonar tudo do alvo (Roupas, Acessórios, Cabelos, Sapatos que sejam acessórios/camadas)
          for _, item in ipairs(targetPlayer.Character:GetChildren()) do
             if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
                item:Clone().Parent = myChar
@@ -224,7 +223,6 @@ PlayerTab:CreateButton({
             myHumDesc.TorsoColor = targetHumDesc.TorsoColor
             Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Cor de pele copiada com sucesso! 🎨", Duration = 3 })
          else
-            -- Método alternativo caso o HumanoidDescription não esteja acessível diretamente
             local targetHead = targetPlayer.Character:FindFirstChild("Head")
             local myHead = myChar:FindFirstChild("Head")
             if targetHead and myHead then
@@ -249,6 +247,38 @@ PlayerTab:CreateSlider({
    Flag = "SpeedSlider",
    Callback = function(Value)
       ApplySpeed(Value)
+   end,
+})
+
+-- TAB 2.5: DESFILE & VOTAÇÃO
+local DesfileTab = Window:CreateTab("🌟 Desfile & Votação", 4483362458)
+
+DesfileTab:CreateToggle({
+   Name = "⭐ Auto Votar (5 Estrelas)",
+   CurrentValue = false,
+   Flag = "AutoVoteToggle",
+   Callback = function(Value)
+      AutoVotarAtivo = Value
+      if AutoVotarAtivo then
+         task.spawn(function()
+            while AutoVotarAtivo do
+               local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+               if playerGui then
+                  for _, btn in ipairs(playerGui:GetDescendants()) do
+                     if btn:IsA("TextButton") and (btn.Text == "5" or btn.Text == "⭐⭐⭐⭐⭐" or btn.Text:find("5")) then
+                        if btn.Visible then
+                           btn.MouseButton1Click:Fire()
+                        end
+                     end
+                  end
+               end
+               task.wait(0.5)
+            end
+         end)
+         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Auto Votar Ativado! ⭐", Duration = 3 })
+      else
+         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Auto Votar Desativado.", Duration = 2 })
+      end
    end,
 })
 
@@ -481,4 +511,3 @@ ConfigTab:CreateButton({
       Rayfield:Destroy()
    end,
 })
-meu Script 
