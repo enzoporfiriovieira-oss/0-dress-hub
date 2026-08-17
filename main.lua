@@ -18,11 +18,11 @@ local Tab = Window:CreateTab("Segredos", FashionIconID)
 local AutoFarmEnabled = false
 local AntiAFKEnabled = false
 local RGBEnabled = false
-local CurrentScaryTrack = nil
 local PhotoModeEnabled = false
 
 -- Funções Auxiliares
 local function GetPlayerByName(name)
+    if not name or name == "" then return nil end
     name = string.lower(name)
     for _, p in ipairs(game.Players:GetPlayers()) do
         if string.find(string.lower(p.Name), name) or string.find(string.lower(p.DisplayName), name) then
@@ -43,16 +43,19 @@ Tab:CreateToggle({
        AutoFarmEnabled = Value
        task.spawn(function()
            while AutoFarmEnabled do
-               task.wait(0.3)
+               task.wait(0.5)
                local lp = game.Players.LocalPlayer
                local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+               
                if hrp then
                    for _, v in ipairs(workspace:GetDescendants()) do
                        if not AutoFarmEnabled then break end
-                       local name = string.lower(v.Name)
-                       if v:IsA("BasePart") and (string.find(name, "coin") or string.find(name, "moeda") or string.find(name, "money") or string.find(name, "cash")) then
-                           hrp.CFrame = v.CFrame
-                           task.wait(0.15)
+                       if v:IsA("BasePart") then
+                           local name = string.lower(v.Name)
+                           if (string.find(name, "coin") or string.find(name, "moeda") or string.find(name, "money") or string.find(name, "cash")) then
+                               hrp.CFrame = v.CFrame
+                               task.wait(0.2)
+                           end
                        end
                    end
                end
@@ -80,83 +83,56 @@ Tab:CreateToggle({
    end,
 })
 
--- SEÇÃO 2: POSES GRÁTIS
-Tab:CreateSection("💃 Poses Grátis")
+-- SEÇÃO 2: MOVIMENTAÇÃO & VANTAGENS
+Tab:CreateSection("⚡ Velocidade & Movimentação")
 
-Tab:CreateButton({
-   Name = "✨ Desbloquear Todas as Poses",
-   Callback = function()
-       local player = game.Players.LocalPlayer
-       
-       for _, v in ipairs(player:GetDescendants()) do
-           if v:IsA("BoolValue") then
-               local name = string.lower(v.Name)
-               if string.find(name, "pose") or string.find(name, "emote") or string.find(name, "dance") or string.find(name, "pack") then
-                   v.Value = true
-               end
-           end
+Tab:CreateSlider({
+   Name = "🏃 Velocidade (WalkSpeed)",
+   Range = {16, 120},
+   Increment = 1,
+   Suffix = " Speed",
+   CurrentValue = 16,
+   Flag = "SpeedSlider",
+   Callback = function(Value)
+       local char = game.Players.LocalPlayer.Character
+       if char and char:FindFirstChildOfClass("Humanoid") then
+           char:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
        end
-
-       local rep = game:GetService("ReplicatedStorage")
-       for _, folder in ipairs(rep:GetDescendants()) do
-           if folder:IsA("Folder") and string.find(string.lower(folder.Name), "pose") then
-               for _, pose in ipairs(folder:GetChildren()) do
-                   if pose:IsA("Animation") and player.Character then
-                       local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                       if humanoid then
-                           pose:Clone().Parent = humanoid
-                       end
-                   end
-               end
-           end
-       end
-
-       Rayfield:Notify({Title = "Poses Grátis", Content = "Tentativa de liberação concluída!", Duration = 3, Image = FashionIconID})
    end,
 })
 
--- SEÇÃO 3: POSES ASSUSTADORAS
-Tab:CreateSection("👻 Poses Assustadoras")
+-- SEÇÃO 3: TELEPORTES RÁPIDOS
+Tab:CreateSection("📍 Teleportes Rápidos")
 
-local function PlayScaryPose(animId)
-   local char = game.Players.LocalPlayer.Character
-   local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-   
-   if humanoid then
-       if CurrentScaryTrack then
-           CurrentScaryTrack:Stop()
-       end
-       
-       local anim = Instance.new("Animation")
-       anim.AnimationId = "rbxassetid://" .. animId
-       CurrentScaryTrack = humanoid:LoadAnimation(anim)
-       CurrentScaryTrack:Play()
-       CurrentScaryTrack:AdjustSpeed(0)
-   end
+local function TeleportTo(cframe)
+    local char = game.Players.LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = cframe
+    end
 end
 
 Tab:CreateButton({
-   Name = "🕷️ Pose Zumbi Flutuante",
-   Callback = function() PlayScaryPose("357670550") end,
-})
-
-Tab:CreateButton({
-   Name = "🦴 Pose Boneca Quebrada",
-   Callback = function() PlayScaryPose("357668616") end,
-})
-
-Tab:CreateButton({
-   Name = "👁️ Pose Entidade Sinistra",
-   Callback = function() PlayScaryPose("357692131") end,
-})
-
-Tab:CreateButton({
-   Name = "❌ Parar Poses Assustadoras",
+   Name = "💄 Teleporte: Área de Make / Cabelo",
    Callback = function()
-       if CurrentScaryTrack then
-           CurrentScaryTrack:Stop()
-           CurrentScaryTrack = nil
-       end
+       -- Mude as coordenadas para o local exato no mapa
+       TeleportTo(CFrame.new(0, 5, 0))
+   end,
+})
+
+Tab:CreateButton({
+   Name = "👗 Teleporte: Área de Roupas / Salão",
+   Callback = function()
+       -- Mude as coordenadas para o local exato no mapa
+       TeleportTo(CFrame.new(50, 5, 0))
+   end,
+})
+
+Tab:CreateButton({
+   Name = "👠 Teleporte: Passarela / Runway",
+   Callback = function()
+       -- Mude as coordenadas para o local exato no mapa
+       TeleportTo(CFrame.new(0, 5, 50))
    end,
 })
 
@@ -252,7 +228,7 @@ Tab:CreateSlider({
    end,
 })
 
--- SEÇÃO 6: COPIAR ESTILO
+-- SEÇÃO 6: COPIAR ESTILO COMPLETO
 Tab:CreateSection("Copiar Estilo")
 
 local TargetNickMake = ""
@@ -276,31 +252,42 @@ Tab:CreateButton({
                for _, d in ipairs(targetHead:GetChildren()) do if d:IsA("Decal") then d:Clone().Parent = localHead end end
                Rayfield:Notify({Title = "Sucesso", Content = "Maquiagem copiada!", Duration = 2, Image = FashionIconID})
            end
+       else
+           Rayfield:Notify({Title = "Erro", Content = "Jogador não encontrado!", Duration = 2, Image = FashionIconID})
        end
    end,
 })
 
 local TargetNickOutfit = ""
 Tab:CreateInput({
-   Name = "Nick (Copiar Roupa)",
+   Name = "Nick (Copiar Roupa, Cabelo e Acessórios)",
    PlaceholderText = "Parte do Nick...",
    RemoveTextOnFocusLost = false,
    Callback = function(Text) TargetNickOutfit = Text end,
 })
 
 Tab:CreateButton({
-   Name = "👗 Copiar Roupa",
+   Name = "👗 Copiar Look Completo (Roupa + Acessórios)",
    Callback = function()
        local targetPlayer = GetPlayerByName(TargetNickOutfit)
        local localChar = game.Players.LocalPlayer.Character
        if targetPlayer and targetPlayer.Character and localChar then
+           -- Limpa roupas e acessórios atuais
            for _, item in ipairs(localChar:GetChildren()) do
-               if item:IsA("Clothing") or item:IsA("ShirtGraphic") then item:Destroy() end
+               if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+                   item:Destroy()
+               end
            end
+           -- Copia roupas e acessórios do jogador alvo
            for _, item in ipairs(targetPlayer.Character:GetChildren()) do
-               if item:IsA("Clothing") or item:IsA("ShirtGraphic") then item:Clone().Parent = localChar end
+               if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+                   item:Clone().Parent = localChar
+               end
            end
-           Rayfield:Notify({Title = "Sucesso", Content = "Roupa copiada!", Duration = 2, Image = FashionIconID})
+           Rayfield:Notify({Title = "Sucesso", Content = "Look completo copiado!", Duration = 2, Image = FashionIconID})
+       else
+           Rayfield:Notify({Title = "Erro", Content = "Jogador não encontrado!", Duration = 2, Image = FashionIconID})
        end
    end,
 })
+
