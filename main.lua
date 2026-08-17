@@ -58,7 +58,7 @@ game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 -- TAB 1: AUTOMATIZAÇÃO
-local AutoTab = Window:CreateTab("⚡ Automação", 4483362458)
+local AutoTab = Window:CreateTab("⚡ Automação", "rbxassetid://7072722055")
 
 AutoTab:CreateToggle({
    Name = "⚡ Auto Farm Inteligente (Coleta por Distância)",
@@ -117,7 +117,7 @@ AutoTab:CreateButton({
 })
 
 -- TAB 2: JOGADOR & ESTILO
-local PlayerTab = Window:CreateTab("👗 Jogador & Estilo", 4483362458)
+local PlayerTab = Window:CreateTab("👗 Jogador & Estilo", "rbxassetid://7072722055")
 
 PlayerTab:CreateInput({
    Name = "💄 Nick do Jogador (Make)",
@@ -218,7 +218,7 @@ PlayerTab:CreateSlider({
 })
 
 -- TAB 3: VISUAL & CÂMERA
-local VisualTab = Window:CreateTab("📷 Visual & Câmera", 4483362458)
+local VisualTab = Window:CreateTab("📷 Visual & Câmera", "rbxassetid://7072722055")
 
 VisualTab:CreateSlider({
    Name = "🔍 Ajuste de Campo de Visão (FOV)",
@@ -347,7 +347,7 @@ VisualTab:CreateButton({
 })
 
 -- TAB 4: TROLL & EFEITOS
-local FunTab = Window:CreateTab("🎭 Troll & Efeitos", 4483362458)
+local FunTab = Window:CreateTab("🎭 Troll & Efeitos", "rbxassetid://7072722055")
 
 FunTab:CreateButton({
    Name = "👻 Modo Sem Cabeça (Local)",
@@ -376,7 +376,7 @@ FunTab:CreateButton({
 })
 
 -- TAB 5: CONFIGURAÇÕES DA UI & PERFORMANCE
-local ConfigTab = Window:CreateTab("⚙️ Configurações", 4483362458)
+local ConfigTab = Window:CreateTab("⚙️ Configurações", "rbxassetid://7072722055")
 
 ConfigTab:CreateButton({
    Name = "🚀 Ativar Modo FPS Boost (Anti-Lag)",
