@@ -15,6 +15,9 @@ local DesiredSpeed = 16
 local SpeedConnection = nil
 local TargetNickMake = ""
 local TargetNickRoupa = ""
+local SpotlightLight = nil
+local CameraLocking = false
+local CameraConnection = nil
 
 -- FUNÇÃO AUXILIAR: BUSCAR JOGADOR POR NICK PARCIAL
 local function GetPlayerByPartialName(name)
@@ -68,7 +71,6 @@ AutoTab:CreateToggle({
                local root = char and char:FindFirstChild("HumanoidRootPart")
                
                if root then
-                  -- Coleta todos os objetos que correspondem a moedas no mapa
                   local itemsToCollect = {}
                   for _, item in ipairs(workspace:GetDescendants()) do
                      if item:IsA("BasePart") or item:IsA("Model") then
@@ -79,14 +81,13 @@ AutoTab:CreateToggle({
                      end
                   end
 
-                  -- Teleporta para cada moeda encontrada
                   for _, item in ipairs(itemsToCollect) do
                      if not AutoFarm then break end
                      if item and item.Parent then
                         local targetCFrame = item:IsA("Model") and item:GetPivot() or item.CFrame
                         if targetCFrame and root then
                            root.CFrame = targetCFrame
-                           task.wait(0.15) -- Tempo entre cada teleporte para o servidor registrar a coleta
+                           task.wait(0.15)
                         end
                      end
                   end
@@ -196,7 +197,67 @@ PlayerTab:CreateSlider({
    end,
 })
 
--- TAB 3: VISUAL & CÂMERA
+-- TAB 3: DESBLOQUEIOS VIP (LOCAL)
+local VipTab = Window:CreateTab("VIP & Desbloqueios", 4483362458)
+
+VipTab:CreateButton({
+   Name = "Desbloquear Salas/Itens VIP (Local)",
+   Callback = function()
+      for _, obj in ipairs(workspace:GetDescendants()) do
+         if obj:IsA("BasePart") and (obj.Name:lower():find("vip") or obj.Name:lower():find("door")) then
+            obj.CanCollide = false
+            obj.Transparency = 0.5
+         end
+      end
+      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Barreiras VIP desativadas localmente!", Duration = 3 })
+   end,
+})
+
+-- TAB 4: TELEPORTES
+local TeleportTab = Window:CreateTab("Teleportes", 4483362458)
+
+local function TeleportTo(cframe)
+   local root = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+   if root then
+      root.CFrame = cframe
+   end
+end
+
+TeleportTab:CreateButton({
+   Name = "TP: Passarela (Runway)",
+   Callback = function()
+      local runway = workspace:FindFirstChild("Runway", true) or workspace:FindFirstChild("Stage", true)
+      if runway then
+         TeleportTo(runway:GetPivot())
+      else
+         Rayfield:Notify({ Title = "Erro", Content = "Passarela não encontrada!", Duration = 3 })
+      end
+   end,
+})
+
+TeleportTab:CreateButton({
+   Name = "TP: Área VIP",
+   Callback = function()
+      local vipArea = workspace:FindFirstChild("VIP", true) or workspace:FindFirstChild("VipRoom", true)
+      if vipArea then
+         TeleportTo(vipArea:GetPivot())
+      else
+         Rayfield:Notify({ Title = "Erro", Content = "Área VIP não encontrada!", Duration = 3 })
+      end
+   end,
+})
+
+TeleportTab:CreateButton({
+   Name = "TP: Salão Principal",
+   Callback = function()
+      local lobby = workspace:FindFirstChild("Lobby", true) or workspace:FindFirstChild("SpawnLocation", true)
+      if lobby then
+         TeleportTo(lobby:GetPivot())
+      end
+   end,
+})
+
+-- TAB 5: VISUAL & CÂMERA
 local VisualTab = Window:CreateTab("Visual & Câmera", 4483362458)
 
 VisualTab:CreateSlider({
@@ -208,6 +269,62 @@ VisualTab:CreateSlider({
    Flag = "FOVSlider",
    Callback = function(Value)
       workspace.CurrentCamera.FieldOfView = Value
+   end,
+})
+
+-- ADIÇÃO 1: EFEITO ESPELHO / HOLOFOTE DE CAMERIM
+VisualTab:CreateToggle({
+   Name = "Efeito Espelho (Luz de Camarim)",
+   CurrentValue = false,
+   Flag = "SpotlightToggle",
+   Callback = function(Value)
+      local char = game.Players.LocalPlayer.Character
+      local head = char and char:FindFirstChild("Head")
+
+      if Value then
+         if head and not SpotlightLight then
+            SpotlightLight = Instance.new("PointLight")
+            SpotlightLight.Name = "DressCamarimLight"
+            SpotlightLight.Color = Color3.fromRGB(255, 240, 220)
+            SpotlightLight.Range = 25
+            SpotlightLight.Brightness = 3
+            SpotlightLight.Parent = head
+         end
+      else
+         if SpotlightLight then
+            SpotlightLight:Destroy()
+            SpotlightLight = nil
+         end
+      end
+   end,
+})
+
+-- ADIÇÃO 2: FIXADOR DE CÂMERA NO ROSTO
+VisualTab:CreateToggle({
+   Name = "Fixar Câmera no Rosto (Foco Make)",
+   CurrentValue = false,
+   Flag = "CamLockToggle",
+   Callback = function(Value)
+      CameraLocking = Value
+      local camera = workspace.CurrentCamera
+      local RunService = game:GetService("RunService")
+
+      if CameraLocking then
+         CameraConnection = RunService.RenderStepped:Connect(function()
+            local char = game.Players.LocalPlayer.Character
+            local head = char and char:FindFirstChild("Head")
+            if head and CameraLocking then
+               camera.CameraType = Enum.CameraType.Scriptable
+               camera.CFrame = head.CFrame * CFrame.new(0, 0, -3.5) * CFrame.Angles(0, math.rad(180), 0)
+            end
+         end)
+      else
+         if CameraConnection then
+            CameraConnection:Disconnect()
+            CameraConnection = nil
+         end
+         camera.CameraType = Enum.CameraType.Custom
+      end
    end,
 })
 
@@ -223,14 +340,24 @@ VisualTab:CreateButton({
 })
 
 VisualTab:CreateButton({
-   Name = "Ativar Efeito de Luz Roxa (Fashion)",
+   Name = "Efeito Luz Roxa (Fashion)",
    Callback = function()
-      local lighting = game:GetService("Lighting")
-      lighting.Ambient = Color3.fromRGB(138, 43, 226)
+      game:GetService("Lighting").Ambient = Color3.fromRGB(138, 43, 226)
    end,
 })
 
--- TAB 4: TROLL & EFEITOS
+VisualTab:CreateButton({
+   Name = "Remover Iluminação (Fullbright)",
+   Callback = function()
+      local lighting = game:GetService("Lighting")
+      lighting.Brightness = 2
+      lighting.ClockTime = 14
+      lighting.FogEnd = 100000
+      lighting.GlobalShadows = false
+   end,
+})
+
+-- TAB 6: TROLL & EFEITOS
 local FunTab = Window:CreateTab("Troll & Efeitos", 4483362458)
 
 FunTab:CreateButton({
@@ -256,5 +383,22 @@ FunTab:CreateButton({
          local hum = char:FindFirstChildOfClass("Humanoid")
          hum.PlatformStand = not hum.PlatformStand
       end
+   end,
+})
+
+-- TAB 7: CONFIGURAÇÕES DA UI
+local ConfigTab = Window:CreateTab("Configurações", 4483362458)
+
+ConfigTab:CreateButton({
+   Name = "Reentrar no Servidor (Rejoin)",
+   Callback = function()
+      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+   end,
+})
+
+ConfigTab:CreateButton({
+   Name = "Fechar Interface (Unload Script)",
+   Callback = function()
+      Rayfield:Destroy()
    end,
 })
