@@ -1,9 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "0 Dress Hub",
-   LoadingTitle = "0 Dress Hub",
-   LoadingSubtitle = "by You",
+   Name = "💜 0 Dress Hub 💜",
+   LoadingTitle = "💜 0 Dress Hub 💜",
+   LoadingSubtitle = "by You ✨",
    Theme = "Amethyst",
    ConfigurationSaving = { Enabled = false },
    KeySystem = false
@@ -58,10 +58,10 @@ game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 -- TAB 1: AUTOMATIZAÇÃO
-local AutoTab = Window:CreateTab("Automação", 4483362458)
+local AutoTab = Window:CreateTab("⚡ Automação", 4483362458)
 
 AutoTab:CreateToggle({
-   Name = "Auto Farm Inteligente (Coleta por Distância)",
+   Name = "⚡ Auto Farm Inteligente (Coleta por Distância)",
    CurrentValue = false,
    Flag = "SmartFarmToggle",
    Callback = function(Value)
@@ -105,22 +105,22 @@ AutoTab:CreateToggle({
 })
 
 AutoTab:CreateButton({
-   Name = "Ativar Anti-AFK",
+   Name = "🛡️ Ativar Anti-AFK",
    Callback = function()
       local VirtualUser = game:GetService("VirtualUser")
       game:GetService("Players").LocalPlayer.Idled:Connect(function()
          VirtualUser:CaptureController()
          VirtualUser:ClickButton2(Vector2.new())
       end)
-      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Anti-AFK Ativado!", Duration = 3 })
+      Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Anti-AFK Ativado com sucesso! 🛡️", Duration = 3 })
    end,
 })
 
 -- TAB 2: JOGADOR & ESTILO
-local PlayerTab = Window:CreateTab("Jogador & Estilo", 4483362458)
+local PlayerTab = Window:CreateTab("👗 Jogador & Estilo", 4483362458)
 
 PlayerTab:CreateInput({
-   Name = "Nick do Jogador (Make)",
+   Name = "💄 Nick do Jogador (Make)",
    PlaceholderText = "Digite o Nick aqui...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
@@ -129,7 +129,7 @@ PlayerTab:CreateInput({
 })
 
 PlayerTab:CreateButton({
-   Name = "➡️ Copiar Make",
+   Name = "✨ Copiar Make",
    Callback = function()
       local targetPlayer = GetPlayerByPartialName(TargetNickMake)
       local myChar = game.Players.LocalPlayer.Character
@@ -149,16 +149,16 @@ PlayerTab:CreateButton({
                   item:Clone().Parent = myHead
                end
             end
-            Rayfield:Notify({ Title = "0 Dress Hub", Content = "Make copiada de " .. targetPlayer.DisplayName, Duration = 3 })
+            Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Make copiada de " .. targetPlayer.DisplayName .. "! 💄", Duration = 3 })
          end
       else
-         Rayfield:Notify({ Title = "Erro", Content = "Jogador não encontrado!", Duration = 3 })
+         Rayfield:Notify({ Title = "❌ Erro", Content = "Jogador não encontrado!", Duration = 3 })
       end
    end,
 })
 
 PlayerTab:CreateInput({
-   Name = "Nick do Jogador (Roupa)",
+   Name = "👗 Nick do Jogador (Roupa)",
    PlaceholderText = "Digite o Nick aqui...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
@@ -167,7 +167,7 @@ PlayerTab:CreateInput({
 })
 
 PlayerTab:CreateButton({
-   Name = "➡️ Copiar Roupa",
+   Name = "✨ Copiar Roupa",
    Callback = function()
       local targetPlayer = GetPlayerByPartialName(TargetNickRoupa)
       local myChar = game.Players.LocalPlayer.Character
@@ -183,9 +183,9 @@ PlayerTab:CreateButton({
                item:Clone().Parent = myChar
             end
          end
-         Rayfield:Notify({ Title = "0 Dress Hub", Content = "Roupa copiada de " .. targetPlayer.DisplayName, Duration = 3 })
+         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Roupa copiada de " .. targetPlayer.DisplayName .. "! 👗", Duration = 3 })
       else
-         Rayfield:Notify({ Title = "Erro", Content = "Jogador não encontrado!", Duration = 3 })
+         Rayfield:Notify({ Title = "❌ Erro", Content = "Jogador não encontrado!", Duration = 3 })
       end
    end,
 })
@@ -200,13 +200,13 @@ PlayerTab:CreateButton({
                item:Destroy()
             end
          end
-         Rayfield:Notify({ Title = "0 Dress Hub", Content = "Acessórios removidos!", Duration = 3 })
+         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Acessórios removidos! 🗑️", Duration = 3 })
       end
    end,
 })
 
 PlayerTab:CreateSlider({
-   Name = "Velocidade de Correr (WalkSpeed)",
+   Name = "👟 Velocidade de Correr (WalkSpeed)",
    Range = {16, 200},
    Increment = 1,
    Suffix = "Speed",
@@ -218,10 +218,10 @@ PlayerTab:CreateSlider({
 })
 
 -- TAB 3: VISUAL & CÂMERA
-local VisualTab = Window:CreateTab("Visual & Câmera", 4483362458)
+local VisualTab = Window:CreateTab("📷 Visual & Câmera", 4483362458)
 
 VisualTab:CreateSlider({
-   Name = "Ajuste de Campo de Visão (FOV)",
+   Name = "🔍 Ajuste de Campo de Visão (FOV)",
    Range = {70, 120},
    Increment = 1,
    Suffix = "FOV",
@@ -233,7 +233,7 @@ VisualTab:CreateSlider({
 })
 
 VisualTab:CreateToggle({
-   Name = "Visão Panorâmica (360° Cam)",
+   Name = "🌐 Visão Panorâmica (360° Cam)",
    CurrentValue = false,
    Flag = "PanoramicToggle",
    Callback = function(Value)
@@ -264,7 +264,7 @@ VisualTab:CreateToggle({
 })
 
 VisualTab:CreateToggle({
-   Name = "Efeito Espelho (Luz de Camarim)",
+   Name = "🪞 Efeito Espelho (Luz de Camarim)",
    CurrentValue = false,
    Flag = "SpotlightToggle",
    Callback = function(Value)
@@ -275,7 +275,7 @@ VisualTab:CreateToggle({
          if head and not SpotlightLight then
             SpotlightLight = Instance.new("PointLight")
             SpotlightLight.Name = "DressCamarimLight"
-            SpotlightLight.Color = Color3.fromRGB(255, 240, 220)
+            SpotlightLight.Color = Color3.fromRGB(220, 180, 255)
             SpotlightLight.Range = 25
             SpotlightLight.Brightness = 3
             SpotlightLight.Parent = head
@@ -290,7 +290,7 @@ VisualTab:CreateToggle({
 })
 
 VisualTab:CreateToggle({
-   Name = "Fixar Câmera no Rosto (Foco Make)",
+   Name = "🎯 Fixar Câmera no Rosto (Foco Make)",
    CurrentValue = false,
    Flag = "CamLockToggle",
    Callback = function(Value)
@@ -318,7 +318,7 @@ VisualTab:CreateToggle({
 })
 
 VisualTab:CreateButton({
-   Name = "Modo Foto (Ocultar Interface)",
+   Name = "📸 Modo Foto (Ocultar Interface)",
    Callback = function()
       for _, gui in ipairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
          if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" and not gui.Name:find("Rayfield") then
@@ -329,14 +329,14 @@ VisualTab:CreateButton({
 })
 
 VisualTab:CreateButton({
-   Name = "Efeito Luz Roxa (Fashion)",
+   Name = "💜 Efeito Luz Roxa (Fashion)",
    Callback = function()
       game:GetService("Lighting").Ambient = Color3.fromRGB(138, 43, 226)
    end,
 })
 
 VisualTab:CreateButton({
-   Name = "Remover Iluminação (Fullbright)",
+   Name = "💡 Remover Iluminação (Fullbright)",
    Callback = function()
       local lighting = game:GetService("Lighting")
       lighting.Brightness = 2
@@ -347,10 +347,10 @@ VisualTab:CreateButton({
 })
 
 -- TAB 4: TROLL & EFEITOS
-local FunTab = Window:CreateTab("Troll & Efeitos", 4483362458)
+local FunTab = Window:CreateTab("🎭 Troll & Efeitos", 4483362458)
 
 FunTab:CreateButton({
-   Name = "Modo Sem Cabeça (Local)",
+   Name = "👻 Modo Sem Cabeça (Local)",
    Callback = function()
       local char = game.Players.LocalPlayer.Character
       if char and char:FindFirstChild("Head") then
@@ -365,7 +365,7 @@ FunTab:CreateButton({
 })
 
 FunTab:CreateButton({
-   Name = "Modo Manequim",
+   Name = "🧍 Modo Manequim",
    Callback = function()
       local char = game.Players.LocalPlayer.Character
       if char and char:FindFirstChildOfClass("Humanoid") then
@@ -376,10 +376,10 @@ FunTab:CreateButton({
 })
 
 -- TAB 5: CONFIGURAÇÕES DA UI & PERFORMANCE
-local ConfigTab = Window:CreateTab("Configurações", 4483362458)
+local ConfigTab = Window:CreateTab("⚙️ Configurações", 4483362458)
 
 ConfigTab:CreateButton({
-   Name = "⚡ Ativar Modo FPS Boost (Anti-Lag)",
+   Name = "🚀 Ativar Modo FPS Boost (Anti-Lag)",
    Callback = function()
       local lighting = game:GetService("Lighting")
       lighting.GlobalShadows = false
@@ -395,19 +395,19 @@ ConfigTab:CreateButton({
             v.Enabled = false
          end
       end
-      Rayfield:Notify({ Title = "0 Dress Hub", Content = "FPS Boost ativado com sucesso!", Duration = 3 })
+      Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "FPS Boost ativado com sucesso! 🚀", Duration = 3 })
    end,
 })
 
 ConfigTab:CreateButton({
-   Name = "Reentrar no Servidor (Rejoin)",
+   Name = "🔄 Reentrar no Servidor (Rejoin)",
    Callback = function()
       game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
    end,
 })
 
 ConfigTab:CreateButton({
-   Name = "Fechar Interface (Unload Script)",
+   Name = "❌ Fechar Interface (Unload Script)",
    Callback = function()
       Rayfield:Destroy()
    end,
