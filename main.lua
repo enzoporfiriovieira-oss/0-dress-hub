@@ -14,7 +14,8 @@ local AutoFarmSmart = false
 local DesiredSpeed = 16
 local SpeedConnection = nil
 local TargetNickMake = ""
-local TargetNickRoupa = ""
+local TargetNickCompleto = ""
+local TargetNickCor = ""
 local SpotlightLight = nil
 local CameraLocking = false
 local CameraConnection = nil
@@ -158,49 +159,83 @@ PlayerTab:CreateButton({
 })
 
 PlayerTab:CreateInput({
-   Name = "👗 Nick do Jogador (Roupa)",
+   Name = "👑 Nick do Jogador (Look Completo)",
    PlaceholderText = "Digite o Nick aqui...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
-      TargetNickRoupa = Text
+      TargetNickCompleto = Text
    end,
 })
 
 PlayerTab:CreateButton({
-   Name = "✨ Copiar Roupa",
+   Name = "✨ Copiar Tudo (Roupas, Acessórios, Sapatos & Cabelos)",
    Callback = function()
-      local targetPlayer = GetPlayerByPartialName(TargetNickRoupa)
+      local targetPlayer = GetPlayerByPartialName(TargetNickCompleto)
       local myChar = game.Players.LocalPlayer.Character
 
       if targetPlayer and targetPlayer.Character and myChar then
+         -- Limpar roupas, acessórios e cabelos antigos
          for _, item in ipairs(myChar:GetChildren()) do
             if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
                item:Destroy()
             end
          end
+
+         -- Clonar tudo do alvo (Roupas, Acessórios, Cabelos, Sapatos que sejam acessórios/camadas)
          for _, item in ipairs(targetPlayer.Character:GetChildren()) do
             if item:IsA("Clothing") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
                item:Clone().Parent = myChar
             end
          end
-         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Roupa copiada de " .. targetPlayer.DisplayName .. "! 👗", Duration = 3 })
+         
+         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Look completo copiado de " .. targetPlayer.DisplayName .. "! 👑", Duration = 3 })
       else
          Rayfield:Notify({ Title = "❌ Erro", Content = "Jogador não encontrado!", Duration = 3 })
       end
    end,
 })
 
+PlayerTab:CreateInput({
+   Name = "🎨 Nick do Jogador (Cor de Pele)",
+   PlaceholderText = "Digite o Nick aqui...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+      TargetNickCor = Text
+   end,
+})
+
 PlayerTab:CreateButton({
-   Name = "🗑️ Remover Acessórios Rápido",
+   Name = "🎨 Copiar Cor de Pele",
    Callback = function()
-      local char = game.Players.LocalPlayer.Character
-      if char then
-         for _, item in ipairs(char:GetChildren()) do
-            if item:IsA("Accessory") then
-               item:Destroy()
+      local targetPlayer = GetPlayerByPartialName(TargetNickCor)
+      local myChar = game.Players.LocalPlayer.Character
+
+      if targetPlayer and targetPlayer.Character and myChar then
+         local targetHumDesc = targetPlayer.Character:FindFirstChildOfClass("Humanoid") and targetPlayer.Character:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass("HumanoidDescription")
+         local myHum = myChar:FindFirstChildOfClass("Humanoid")
+         local myHumDesc = myHum and myHum:FindFirstChildOfClass("HumanoidDescription")
+
+         if targetHumDesc and myHumDesc then
+            myHumDesc.HeadColor = targetHumDesc.HeadColor
+            myHumDesc.LeftArmColor = targetHumDesc.LeftArmColor
+            myHumDesc.RightArmColor = targetHumDesc.RightArmColor
+            myHumDesc.LeftLegColor = targetHumDesc.LeftLegColor
+            myHumDesc.RightLegColor = targetHumDesc.RightLegColor
+            myHumDesc.TorsoColor = targetHumDesc.TorsoColor
+            Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Cor de pele copiada com sucesso! 🎨", Duration = 3 })
+         else
+            -- Método alternativo caso o HumanoidDescription não esteja acessível diretamente
+            local targetHead = targetPlayer.Character:FindFirstChild("Head")
+            local myHead = myChar:FindFirstChild("Head")
+            if targetHead and myHead then
+               myHead.Color = targetHead.Color
+               Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Cor da cabeça copiada! 🎨", Duration = 3 })
+            else
+               Rayfield:Notify({ Title = "❌ Erro", Content = "Não foi possível copiar a cor de pele.", Duration = 3 })
             end
          end
-         Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Acessórios removidos! 🗑️", Duration = 3 })
+      else
+         Rayfield:Notify({ Title = "❌ Erro", Content = "Jogador não encontrado!", Duration = 3 })
       end
    end,
 })
@@ -375,7 +410,48 @@ FunTab:CreateButton({
    end,
 })
 
--- TAB 5: CONFIGURAÇÕES DA UI & PERFORMANCE
+-- TAB 5: SERVIDOR
+local ServerTab = Window:CreateTab("🌐 Servidor", 4483362458)
+
+ServerTab:CreateButton({
+   Name = "🔄 Trocar de Servidor (Server Hop)",
+   Callback = function()
+      local TeleportService = game:GetService("TeleportService")
+      local HttpService = game:GetService("HttpService")
+      local servers = {}
+      
+      Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "Procurando outro servidor...", Duration = 3 })
+      
+      local success, result = pcall(function()
+         return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+      end)
+      
+      if success and result and result.data then
+         for _, s in ipairs(result.data) do
+            if type(s) == "table" and s.maxPlayers and s.playing and s.id and s.playing < s.maxPlayers and s.id ~= game.JobId then
+               table.insert(servers, s.id)
+            end
+         end
+         
+         if #servers > 0 then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], game.Players.LocalPlayer)
+         else
+            Rayfield:Notify({ Title = "❌ Erro", Content = "Nenhum servidor encontrado!", Duration = 3 })
+         end
+      else
+         Rayfield:Notify({ Title = "❌ Erro", Content = "Falha ao buscar servidores.", Duration = 3 })
+      end
+   end,
+})
+
+ServerTab:CreateButton({
+   Name = "🔁 Reentrar no Servidor (Rejoin)",
+   Callback = function()
+      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+   end,
+})
+
+-- TAB 6: CONFIGURAÇÕES DA UI & PERFORMANCE
 local ConfigTab = Window:CreateTab("⚙️ Configurações", 4483362458)
 
 ConfigTab:CreateButton({
@@ -396,13 +472,6 @@ ConfigTab:CreateButton({
          end
       end
       Rayfield:Notify({ Title = "💜 0 Dress Hub 💜", Content = "FPS Boost ativado com sucesso! 🚀", Duration = 3 })
-   end,
-})
-
-ConfigTab:CreateButton({
-   Name = "🔄 Reentrar no Servidor (Rejoin)",
-   Callback = function()
-      game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
    end,
 })
 
