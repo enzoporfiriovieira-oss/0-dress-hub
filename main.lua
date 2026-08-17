@@ -4,6 +4,7 @@ local Window = Rayfield:CreateWindow({
    Name = "0 Dress Hub",
    LoadingTitle = "0 Dress Hub",
    LoadingSubtitle = "by You",
+   Theme = "Purple",
    ConfigurationSaving = { Enabled = false },
    KeySystem = false
 })
@@ -12,7 +13,7 @@ local Window = Rayfield:CreateWindow({
 local AutoFarm = false
 local WalkSpeedVal = 16
 
--- LISTA DE CÓDIGOS DO JOGO (Adicione novos códigos entre aspas)
+-- LISTA DE CÓDIGOS DO JOGO
 local listaCodigos = {
     "DRESS2026",
     "FASHION2026",
@@ -20,7 +21,7 @@ local listaCodigos = {
     "STYLEUP"
 }
 
--- TAB 1: AUTOMATIZAÇÃO & CÓDIGOS
+-- TAB 1: AUTOMATIZAÇÃO
 local AutoTab = Window:CreateTab("Automação", 4483362458)
 
 AutoTab:CreateToggle({
@@ -45,7 +46,6 @@ AutoTab:CreateToggle({
    end,
 })
 
--- MODELO DE COLETA AUTOMÁTICA DE TODOS OS CÓDIGOS
 AutoTab:CreateButton({
    Name = "Resgatar Todos os Códigos Ativos",
    Callback = function()
@@ -63,9 +63,7 @@ AutoTab:CreateButton({
               end)
               task.wait(0.5)
           end
-          Rayfield:Notify({ Title = "Códigos", Content = "Processo de resgate concluído!", Duration = 3 })
-      else
-          Rayfield:Notify({ Title = "Erro", Content = "Evento de código não encontrado.", Duration = 3 })
+          Rayfield:Notify({ Title = "0 Dress Hub", Content = "Todos os códigos foram resgatados!", Duration = 3 })
       end
    end,
 })
@@ -78,7 +76,7 @@ AutoTab:CreateButton({
          VirtualUser:CaptureController()
          VirtualUser:ClickButton2(Vector2.new())
       end)
-      Rayfield:Notify({ Title = "Anti-AFK", Content = "Proteção contra desconexão ativa!", Duration = 3 })
+      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Anti-AFK Ativado!", Duration = 3 })
    end,
 })
 
@@ -86,19 +84,26 @@ AutoTab:CreateButton({
 local PlayerTab = Window:CreateTab("Jogador & Estilo", 4483362458)
 
 PlayerTab:CreateButton({
-   Name = "Copiar Estilo do Jogador Próximo",
+   Name = "Copiar Estilo Completo (Roupas/Acessórios/Maquiagem)",
    Callback = function()
       local p1 = game.Players.LocalPlayer
       for _, p2 in ipairs(game.Players:GetPlayers()) do
          if p2 ~= p1 and p2.Character and p1.Character then
             local dist = (p1.Character.HumanoidRootPart.Position - p2.Character.HumanoidRootPart.Position).Magnitude
             if dist < 15 then
-               for _, acc in ipairs(p2.Character:GetChildren()) do
-                  if acc:IsA("Accessory") or acc:IsA("Clothing") then
-                     acc:Clone().Parent = p1.Character
+               for _, item in ipairs(p2.Character:GetChildren()) do
+                  if item:IsA("Accessory") or item:IsA("Clothing") or item:IsA("ShirtGraphic") then
+                     item:Clone().Parent = p1.Character
                   end
                end
-               Rayfield:Notify({ Title = "Estilo Copiado", Content = "Roupas e acessórios copiados de: " .. p2.Name, Duration = 3 })
+               if p2.Character:FindFirstChild("Head") and p1.Character:FindFirstChild("Head") then
+                  local face = p2.Character.Head:FindFirstChildOfClass("Decal")
+                  if face then
+                     local myFace = p1.Character.Head:FindFirstChildOfClass("Decal")
+                     if myFace then myFace.Texture = face.Texture else face:Clone().Parent = p1.Character.Head end
+                  end
+               end
+               Rayfield:Notify({ Title = "0 Dress Hub", Content = "Estilo copiado de: " .. p2.Name, Duration = 3 })
                break
             end
          end
@@ -136,7 +141,7 @@ VisualTab:CreateSlider({
 })
 
 VisualTab:CreateButton({
-   Name = "Modo Foto (Ocultar UI)",
+   Name = "Modo Foto (Ocultar Interface)",
    Callback = function()
       for _, gui in ipairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
          if gui:IsA("ScreenGui") and gui.Name ~= "Rayfield" then
@@ -147,14 +152,14 @@ VisualTab:CreateButton({
 })
 
 VisualTab:CreateButton({
-   Name = "Efeito RGB / Iluminação Customizada",
+   Name = "Efeito RGB / Iluminação Roxa",
    Callback = function()
       local lighting = game:GetService("Lighting")
-      lighting.Ambient = Color3.fromRGB(255, 105, 180) -- Tom Rosa/Fashion
+      lighting.Ambient = Color3.fromRGB(138, 43, 226)
    end,
 })
 
--- TAB 4: FUNÇÕES DIVERTIDAS / TROLLING
+-- TAB 4: TROLL & EFEITOS
 local FunTab = Window:CreateTab("Troll & Efeitos", 4483362458)
 
 FunTab:CreateButton({
