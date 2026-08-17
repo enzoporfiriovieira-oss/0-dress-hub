@@ -10,7 +10,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- VARIÁVEIS DE CONTROLE
-local AutoFarm = false
+local AutoFarmSmart = false
 local DesiredSpeed = 16
 local SpeedConnection = nil
 local TargetNickMake = ""
@@ -18,6 +18,8 @@ local TargetNickRoupa = ""
 local SpotlightLight = nil
 local CameraLocking = false
 local CameraConnection = nil
+local PanoramicCam = false
+local PanoramicConnection = nil
 
 -- FUNÇÃO AUXILIAR: BUSCAR JOGADOR POR NICK PARCIAL
 local function GetPlayerByPartialName(name)
@@ -59,40 +61,43 @@ end)
 local AutoTab = Window:CreateTab("Automação", 4483362458)
 
 AutoTab:CreateToggle({
-   Name = "Auto Farm (Coleta de Moedas)",
+   Name = "Auto Farm Inteligente (Coleta por Distância)",
    CurrentValue = false,
-   Flag = "AutoFarmToggle",
+   Flag = "SmartFarmToggle",
    Callback = function(Value)
-      AutoFarm = Value
-      if AutoFarm then
+      AutoFarmSmart = Value
+      if AutoFarmSmart then
          task.spawn(function()
-            while AutoFarm do
+            while AutoFarmSmart do
                local char = game.Players.LocalPlayer.Character
                local root = char and char:FindFirstChild("HumanoidRootPart")
+               local hum = char and char:FindFirstChildOfClass("Humanoid")
                
-               if root then
-                  local itemsToCollect = {}
+               if root and hum then
+                  local closestItem = nil
+                  local shortestDistance = math.huge
+
                   for _, item in ipairs(workspace:GetDescendants()) do
                      if item:IsA("BasePart") or item:IsA("Model") then
                         local lowerName = item.Name:lower()
                         if lowerName:find("coin") or lowerName:find("currency") or lowerName:find("money") or lowerName:find("gem") then
-                           table.insert(itemsToCollect, item)
+                           local itemPos = item:IsA("Model") and item:GetPivot().Position or item.Position
+                           local dist = (root.Position - itemPos).Magnitude
+                           if dist < shortestDistance then
+                              shortestDistance = dist
+                              closestItem = item
+                           end
                         end
                      end
                   end
 
-                  for _, item in ipairs(itemsToCollect) do
-                     if not AutoFarm then break end
-                     if item and item.Parent then
-                        local targetCFrame = item:IsA("Model") and item:GetPivot() or item.CFrame
-                        if targetCFrame and root then
-                           root.CFrame = targetCFrame
-                           task.wait(0.15)
-                        end
-                     end
+                  if closestItem and closestItem.Parent then
+                     local targetPos = closestItem:IsA("Model") and closestItem:GetPivot().Position or closestItem.Position
+                     hum:MoveTo(targetPos)
+                     task.wait(0.2)
                   end
                end
-               task.wait(0.5)
+               task.wait(0.3)
             end
          end)
       end
@@ -185,6 +190,21 @@ PlayerTab:CreateButton({
    end,
 })
 
+PlayerTab:CreateButton({
+   Name = "🗑️ Remover Acessórios Rápido",
+   Callback = function()
+      local char = game.Players.LocalPlayer.Character
+      if char then
+         for _, item in ipairs(char:GetChildren()) do
+            if item:IsA("Accessory") then
+               item:Destroy()
+            end
+         end
+         Rayfield:Notify({ Title = "0 Dress Hub", Content = "Acessórios removidos!", Duration = 3 })
+      end
+   end,
+})
+
 PlayerTab:CreateSlider({
    Name = "Velocidade de Correr (WalkSpeed)",
    Range = {16, 200},
@@ -197,67 +217,7 @@ PlayerTab:CreateSlider({
    end,
 })
 
--- TAB 3: DESBLOQUEIOS VIP (LOCAL)
-local VipTab = Window:CreateTab("VIP & Desbloqueios", 4483362458)
-
-VipTab:CreateButton({
-   Name = "Desbloquear Salas/Itens VIP (Local)",
-   Callback = function()
-      for _, obj in ipairs(workspace:GetDescendants()) do
-         if obj:IsA("BasePart") and (obj.Name:lower():find("vip") or obj.Name:lower():find("door")) then
-            obj.CanCollide = false
-            obj.Transparency = 0.5
-         end
-      end
-      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Barreiras VIP desativadas localmente!", Duration = 3 })
-   end,
-})
-
--- TAB 4: TELEPORTES
-local TeleportTab = Window:CreateTab("Teleportes", 4483362458)
-
-local function TeleportTo(cframe)
-   local root = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-   if root then
-      root.CFrame = cframe
-   end
-end
-
-TeleportTab:CreateButton({
-   Name = "TP: Passarela (Runway)",
-   Callback = function()
-      local runway = workspace:FindFirstChild("Runway", true) or workspace:FindFirstChild("Stage", true)
-      if runway then
-         TeleportTo(runway:GetPivot())
-      else
-         Rayfield:Notify({ Title = "Erro", Content = "Passarela não encontrada!", Duration = 3 })
-      end
-   end,
-})
-
-TeleportTab:CreateButton({
-   Name = "TP: Área VIP",
-   Callback = function()
-      local vipArea = workspace:FindFirstChild("VIP", true) or workspace:FindFirstChild("VipRoom", true)
-      if vipArea then
-         TeleportTo(vipArea:GetPivot())
-      else
-         Rayfield:Notify({ Title = "Erro", Content = "Área VIP não encontrada!", Duration = 3 })
-      end
-   end,
-})
-
-TeleportTab:CreateButton({
-   Name = "TP: Salão Principal",
-   Callback = function()
-      local lobby = workspace:FindFirstChild("Lobby", true) or workspace:FindFirstChild("SpawnLocation", true)
-      if lobby then
-         TeleportTo(lobby:GetPivot())
-      end
-   end,
-})
-
--- TAB 5: VISUAL & CÂMERA
+-- TAB 3: VISUAL & CÂMERA
 local VisualTab = Window:CreateTab("Visual & Câmera", 4483362458)
 
 VisualTab:CreateSlider({
@@ -272,7 +232,37 @@ VisualTab:CreateSlider({
    end,
 })
 
--- ADIÇÃO 1: EFEITO ESPELHO / HOLOFOTE DE CAMERIM
+VisualTab:CreateToggle({
+   Name = "Visão Panorâmica (360° Cam)",
+   CurrentValue = false,
+   Flag = "PanoramicToggle",
+   Callback = function(Value)
+      PanoramicCam = Value
+      local camera = workspace.CurrentCamera
+      local angle = 0
+
+      if PanoramicCam then
+         PanoramicConnection = game:GetService("RunService").RenderStepped:Connect(function(dt)
+            local char = game.Players.LocalPlayer.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if root and PanoramicCam then
+               angle = angle + (dt * 30)
+               local rad = math.rad(angle)
+               local offset = Vector3.new(math.sin(rad) * 10, 3, math.cos(rad) * 10)
+               camera.CameraType = Enum.CameraType.Scriptable
+               camera.CFrame = CFrame.new(root.Position + offset, root.Position)
+            end
+         end)
+      else
+         if PanoramicConnection then
+            PanoramicConnection:Disconnect()
+            PanoramicConnection = nil
+         end
+         camera.CameraType = Enum.CameraType.Custom
+      end
+   end,
+})
+
 VisualTab:CreateToggle({
    Name = "Efeito Espelho (Luz de Camarim)",
    CurrentValue = false,
@@ -299,7 +289,6 @@ VisualTab:CreateToggle({
    end,
 })
 
--- ADIÇÃO 2: FIXADOR DE CÂMERA NO ROSTO
 VisualTab:CreateToggle({
    Name = "Fixar Câmera no Rosto (Foco Make)",
    CurrentValue = false,
@@ -357,7 +346,7 @@ VisualTab:CreateButton({
    end,
 })
 
--- TAB 6: TROLL & EFEITOS
+-- TAB 4: TROLL & EFEITOS
 local FunTab = Window:CreateTab("Troll & Efeitos", 4483362458)
 
 FunTab:CreateButton({
@@ -386,8 +375,29 @@ FunTab:CreateButton({
    end,
 })
 
--- TAB 7: CONFIGURAÇÕES DA UI
+-- TAB 5: CONFIGURAÇÕES DA UI & PERFORMANCE
 local ConfigTab = Window:CreateTab("Configurações", 4483362458)
+
+ConfigTab:CreateButton({
+   Name = "⚡ Ativar Modo FPS Boost (Anti-Lag)",
+   Callback = function()
+      local lighting = game:GetService("Lighting")
+      lighting.GlobalShadows = false
+      lighting.FogEnd = 9e9
+
+      for _, v in ipairs(workspace:GetDescendants()) do
+         if v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Reflectance = 0
+         elseif v:IsA("Decal") or v:IsA("Texture") then
+            v:Destroy()
+         elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then
+            v.Enabled = false
+         end
+      end
+      Rayfield:Notify({ Title = "0 Dress Hub", Content = "FPS Boost ativado com sucesso!", Duration = 3 })
+   end,
+})
 
 ConfigTab:CreateButton({
    Name = "Reentrar no Servidor (Rejoin)",
