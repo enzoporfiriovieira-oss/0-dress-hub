@@ -4,7 +4,7 @@ local Window = Rayfield:CreateWindow({
    Name = "0 Dress Hub",
    LoadingTitle = "0 Dress Hub",
    LoadingSubtitle = "by You",
-   Theme = "Purple",
+   Theme = "Amethyst", -- Aplica a cor roxa em toda a UI (fundo, botões, abas)
    ConfigurationSaving = { Enabled = false },
    KeySystem = false
 })
@@ -63,7 +63,6 @@ AutoTab:CreateButton({
               end)
               task.wait(0.5)
           end
-          Rayfield:Notify({ Title = "0 Dress Hub", Content = "Todos os códigos foram resgatados!", Duration = 3 })
       end
    end,
 })
@@ -76,7 +75,6 @@ AutoTab:CreateButton({
          VirtualUser:CaptureController()
          VirtualUser:ClickButton2(Vector2.new())
       end)
-      Rayfield:Notify({ Title = "0 Dress Hub", Content = "Anti-AFK Ativado!", Duration = 3 })
    end,
 })
 
@@ -103,7 +101,6 @@ PlayerTab:CreateButton({
                      if myFace then myFace.Texture = face.Texture else face:Clone().Parent = p1.Character.Head end
                   end
                end
-               Rayfield:Notify({ Title = "0 Dress Hub", Content = "Estilo copiado de: " .. p2.Name, Duration = 3 })
                break
             end
          end
@@ -152,7 +149,7 @@ VisualTab:CreateButton({
 })
 
 VisualTab:CreateButton({
-   Name = "Efeito RGB / Iluminação Roxa",
+   Name = "Ativar Efeito de Luz Roxa (Fashion)",
    Callback = function()
       local lighting = game:GetService("Lighting")
       lighting.Ambient = Color3.fromRGB(138, 43, 226)
